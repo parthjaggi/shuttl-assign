@@ -6,30 +6,47 @@ variable "provider" {
     region     = ""
   }
 }
-# variable "vpc" {
-#   type    = "map"
-#   default = {
-#     "tag"         = ""
-#     "cidr_block"  = ""
-#     "subnet_bits" = ""
-#   }
-# }
 
-# variable "access_key" {
-#   default = "${var.provider.access_key}"
-# }
-# variable "secret_key" {
-#   default = "${var.provider.secret_key}"
-# }
+variable "vpc" {
+  type    = "map"
+  default = {
+    "tag"         = ""
+    "cidr_block"  = ""
+    "subnet_size" = ""
+  }
+}
 
-# variable "region" {
-#   default = "us-west-2"
-# }
+variable "apex_domain" {
+  default = ""
+}
+variable "key_name" {
+  default = ""
+}
+
+variable "launch_config" {
+  type    = "map"
+  default = {
+    "instance_type" = ""
+  }
+}
+
+variable "autoscaling_config" {
+  type    = "map"
+  default = {
+    "min_size" = ""
+    "desired_capacity" = ""
+    "max_size" = ""
+  }
+}
+
+
+
+
 
 provider "aws" {
   access_key = "${var.provider["access_key"]}"
   secret_key = "${var.provider["secret_key"]}"
-  region     = "${var.region}"
+  region     = "${var.provider["region"]}"
 }
 
 
@@ -37,12 +54,7 @@ provider "aws" {
 
 # below from https://medium.com/@ratulbasak93/aws-elb-and-autoscaling-using-terraform-9999e6266734
 
-variable "public_key_path" {
-  default = "/home/parth/repos/keys/practice.pem"
-}
-variable "key_name" {
-  default = "practice"
-}
+
 
 
 
@@ -50,7 +62,10 @@ variable "key_name" {
 # below from: https://ops.tips/blog/a-pratical-look-at-basic-aws-networking/
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "${var.vpc["cidr_block"]}"
+  tags {
+    Name     = "VPC-${var.vpc["tag"]}"
+  }
 }
 
 resource "aws_internet_gateway" "default" {
@@ -59,16 +74,10 @@ resource "aws_internet_gateway" "default" {
 
 data "aws_availability_zones" "allzones" {}
 
-variable "name" {
-  default = "shuttl"
-}
 
-variable "subnet_size" {
-  default = 4096
-}
 
 locals {
-  subnet_newbits = "${32 - log(var.subnet_size, 2) - element(split("/", aws_vpc.main.cidr_block), 1)}"
+  subnet_newbits = "${32 - log(var.vpc["subnet_size"], 2) - element(split("/", aws_vpc.main.cidr_block), 1)}"
 }
 
 resource "aws_subnet" "public" {
@@ -80,7 +89,7 @@ resource "aws_subnet" "public" {
   availability_zone       = "${element(data.aws_availability_zones.allzones.names, count.index)}"
 
   tags = {
-    Name = "${var.name}-public-subnet-${element(data.aws_availability_zones.allzones.names, count.index)}"
+    Name = "${lower(var.vpc["tag"])}-public-subnet-${element(data.aws_availability_zones.allzones.names, count.index)}"
   }
 }
 
@@ -92,7 +101,7 @@ resource "aws_subnet" "private" {
   availability_zone       = "${element(data.aws_availability_zones.allzones.names, count.index)}"
 
   tags = {
-    Name = "${var.name}-private-subnet-${element(data.aws_availability_zones.allzones.names, count.index)}"
+    Name = "${lower(var.vpc["tag"])}-private-subnet-${element(data.aws_availability_zones.allzones.names, count.index)}"
   }
 }
 
@@ -154,7 +163,7 @@ data "aws_ami" "go_app" {
 
 resource "aws_launch_configuration" "go_app" {
   image_id        = "${data.aws_ami.go_app.id}"
-  instance_type   = "t2.micro"
+  instance_type   = "${var.launch_config["instance_type"]}"
   security_groups = ["${aws_security_group.go_app.id}"]
   key_name        = "${var.key_name}"
   user_data       = <<-EOF
@@ -199,12 +208,12 @@ resource "aws_autoscaling_group" "go_app" {
   launch_configuration = "${aws_launch_configuration.go_app.name}"
   vpc_zone_identifier  = ["${aws_subnet.public.*.id}"]
   
-  min_size             = 1
-  desired_capacity     = 2
-  max_size             = 4
+  min_size             = "${var.autoscaling_config["min_size"]}"
+  desired_capacity     = "${var.autoscaling_config["desired_capacity"]}"
+  max_size             = "${var.autoscaling_config["max_size"]}"
   
   load_balancers = ["${aws_elb.go_app.id}"]
-  # health_check_type = "ELB"
+  health_check_type = "ELB"
 
   lifecycle {
     create_before_destroy = true
@@ -247,13 +256,13 @@ resource "aws_elb" "go_app" {
   #   ssl_certificate_id = "${var.app["ssl_cert_arn"]}"
   # }
 
-  # health_check {
-  #   healthy_threshold   = 2
-  #   unhealthy_threshold = 2
-  #   timeout             = 3
-  #   target              = "HTTP:80/"
-  #   interval            = 30
-  # }
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 3
+    target              = "HTTP:80/"
+    interval            = 30
+  }
 
   cross_zone_load_balancing   = true
   idle_timeout                = 400
@@ -292,48 +301,3 @@ resource "aws_security_group" "elastic_lb" {
     create_before_destroy = true
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# if could not connect to instance in auto-scaling group:
-# make instance in public and private subnet as done below.
-
-# below from: goat icon, https://ops.tips/blog/a-pratical-look-at-basic-aws-networking/#creating-aws-vpc-subnets
-
-# resource "aws_instance" "inst1" {
-#   instance_type = "t2.micro"
-#   ami           = "${data.aws_ami.ubuntu.id}"
-#   key_name      = "${aws_key_pair.main.id}"
-#   subnet_id     = "${module.networking.az-subnet-id-mapping["subnet1"]}"
-# }
-
-# resource "aws_instance" "inst2" {
-#   instance_type = "t2.micro"
-#   ami           = "${data.aws_ami.ubuntu.id}"
-#   key_name      = "${aws_key_pair.main.id}"
-#   subnet_id     = "${module.networking.az-subnet-id-mapping["subnet2"]}"
-# }
-
