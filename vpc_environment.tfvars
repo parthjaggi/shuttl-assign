@@ -3,10 +3,9 @@ vpc = {
     cidr_block            = "10.0.0.0/16"
     subnet_size           = 4096
 }
-apex_domain               = "shuttl.com"
-key_name                  = "practice"
 launch_config = {
     instance_type         = "t2.micro"
+    startup_file_path     = "./scripts/startup_app.sh"
 }
 autoscaling_config = {
     min_size              = 1
