@@ -18,7 +18,7 @@ resource "aws_route_table" "rt_nat_gateway" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_nat_gateway.nat_gateway.id}"
+    nat_gateway_id = "${aws_nat_gateway.nat_gateway.id}"
   }
 }
 
