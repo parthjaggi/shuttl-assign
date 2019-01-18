@@ -18,6 +18,13 @@ echo "export PATH=\$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.profile
 go get github.com/hashicorp/http-echo
 ln -s ~/go/bin/http-echo /usr/bin/http-echo
 
-# start server
-http-echo -listen=:80 -text="hello world" &
+# move logrotate config file
+mv /home/ubuntu/go-logrotate /etc/logrotate.d/go-logrotate
 
+# install aws-cli or s3cmd and configure it. create bucket
+apt install python-setuptools -y
+cd /tmp
+curl -LO https://github.com/s3tools/s3cmd/releases/download/v2.0.1/s3cmd-2.0.1.tar.gz
+tar -xf s3cmd-*.tar.gz
+cd s3cmd-*
+python setup.py install

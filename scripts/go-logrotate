@@ -1,0 +1,13 @@
+/home/ubuntu/http-echo-logs/*log {
+    su ubuntu ubuntu
+    daily
+    rotate 10
+    copytruncate
+    dateext
+    dateformat -%d%m%Y
+    missingok
+    compress
+    postrotate
+      /usr/local/bin/s3cmd sync /home/ubuntu/http-echo-logs/*.gz s3://my-shuttl-bucket/http-echo/
+    endscript
+}
