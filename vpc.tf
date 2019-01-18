@@ -120,7 +120,7 @@ resource "aws_elb" "go_app" {
   listener {
     lb_port           = 80
     lb_protocol       = "http"
-    instance_port     = 80
+    instance_port     = 3000
     instance_protocol = "http"
   }
   # listener {
@@ -140,10 +140,10 @@ resource "aws_elb" "go_app" {
 
   health_check {
     healthy_threshold   = 2
-    unhealthy_threshold = 2
+    unhealthy_threshold = 10
     timeout             = 3
-    target              = "HTTP:80/"
-    interval            = 30
+    target              = "HTTP:3000/"
+    interval            = 300
   }
 
   cross_zone_load_balancing   = true
@@ -188,3 +188,16 @@ resource "aws_autoscaling_group" "go_app" {
   #   propagate_at_launch = true
   # }
 }
+
+# resource "aws_route53_record" "www" {
+#   # zone_id = "${aws_route53_zone.primary.zone_id}"
+#   zone_id = "${aws_elb.go_app.zone_id}"
+#   name    = "terraform-test.${var.apex_domain}"
+#   type    = "A"
+
+#   alias {
+#     name                   = "${aws_elb.go_app.dns_name}"
+#     zone_id                = "${aws_elb.go_app.zone_id}"
+#     evaluate_target_health = true
+#   }
+# }

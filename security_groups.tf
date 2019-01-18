@@ -1,5 +1,5 @@
 resource "aws_security_group" "go_app" {
-  name = "security_group_for_go_server"
+  name = "security_group_for_go_app"
   vpc_id = "${aws_vpc.main.id}"
 
   ingress {
@@ -9,8 +9,8 @@ resource "aws_security_group" "go_app" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port   = 80 
-    to_port     = 80 
+    from_port   = 3000 
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
