@@ -23,6 +23,9 @@ variable "autoscaling_config" {
     "min_size" = ""
     "desired_capacity" = ""
     "max_size" = ""
+    "on_demand_base_capacity" = ""
+    "on_demand_percentage_above_base_capacity" = ""
+    "spot_instance_pools" = ""
   }
 }
 
@@ -186,10 +189,10 @@ resource "aws_autoscaling_group" "go_app" {
     }
 
     instances_distribution {
-      on_demand_base_capacity                  = 1
-      on_demand_percentage_above_base_capacity = 0
+      on_demand_base_capacity                  = "${var.autoscaling_config["on_demand_base_capacity"]}"
+      on_demand_percentage_above_base_capacity = "${var.autoscaling_config["on_demand_percentage_above_base_capacity"]}"
       spot_allocation_strategy                 = "lowest-price"
-      spot_instance_pools                      = 2
+      spot_instance_pools                      = "${var.autoscaling_config["spot_instance_pools"]}"
     }
   }
 

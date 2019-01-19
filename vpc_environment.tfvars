@@ -8,7 +8,10 @@ launch_config = {
     startup_file_path     = "./scripts/startup_app.sh"
 }
 autoscaling_config = {
-    min_size              = 1
-    desired_capacity      = 2
-    max_size              = 4
+    min_size                                 = 1
+    desired_capacity                         = 2
+    max_size                                 = 4
+    on_demand_base_capacity                  = 1
+    on_demand_percentage_above_base_capacity = 0
+    spot_instance_pools                      = 2
 }
