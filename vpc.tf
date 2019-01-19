@@ -101,12 +101,12 @@ resource "random_id" "deployment_group" {
   byte_length = 8
 }
 
-resource "aws_launch_configuration" "go_app" {
-  image_id        = "${data.aws_ami.go_app.id}"
-  instance_type   = "${var.launch_config["instance_type"]}"
-  security_groups = ["${aws_security_group.go_app.id}"]
-  key_name        = "${var.key_name}"
-  user_data       = "${data.template_file.launch_config.rendered}"
+resource "aws_launch_template" "go_app" {
+  image_id               = "${data.aws_ami.go_app.id}"
+  instance_type          = "${var.launch_config["instance_type"]}"
+  vpc_security_group_ids = ["${aws_security_group.go_app.id}"]
+  key_name               = "${var.key_name}"
+  user_data              = "${base64encode(data.template_file.launch_config.rendered)}"
   lifecycle {
     create_before_destroy = true
   }
@@ -157,8 +157,7 @@ resource "aws_elb" "go_app" {
 }
 
 resource "aws_autoscaling_group" "go_app" {
-  name                 = "${aws_launch_configuration.go_app.name}-asg"
-  launch_configuration = "${aws_launch_configuration.go_app.name}"
+  name                 = "${aws_launch_template.go_app.name}-asg"
   vpc_zone_identifier  = ["${aws_subnet.public.*.id}"]
   
   min_size             = "${var.autoscaling_config["min_size"]}"
@@ -170,6 +169,28 @@ resource "aws_autoscaling_group" "go_app" {
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.go_app.id}"
+        version            = "$$Latest"
+      }
+      override {
+        instance_type = "t2.small"
+      }
+      override {
+        instance_type = "t2.nano"
+      }
+    }
+
+    instances_distribution {
+      on_demand_base_capacity                  = 1
+      on_demand_percentage_above_base_capacity = 0
+      spot_allocation_strategy                 = "lowest-price"
+      spot_instance_pools                      = 2
+    }
   }
 
   tag {
