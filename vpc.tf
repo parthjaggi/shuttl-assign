@@ -189,15 +189,17 @@ resource "aws_autoscaling_group" "go_app" {
   # }
 }
 
-# resource "aws_route53_record" "www" {
-#   # zone_id = "${aws_route53_zone.primary.zone_id}"
-#   zone_id = "${aws_elb.go_app.zone_id}"
-#   name    = "terraform-test.${var.apex_domain}"
-#   type    = "A"
+resource "aws_route53_zone" "my-zone" {
+  name = "${var.apex_domain}"
+}
+resource "aws_route53_record" "my-record" {
+  zone_id = "${aws_route53_zone.my-zone.id}"
+  name    = "terraform-test.${var.apex_domain}"
+  type    = "A"
 
-#   alias {
-#     name                   = "${aws_elb.go_app.dns_name}"
-#     zone_id                = "${aws_elb.go_app.zone_id}"
-#     evaluate_target_health = true
-#   }
-# }
+  alias {
+    name                   = "${aws_elb.go_app.dns_name}"
+    zone_id                = "${aws_elb.go_app.zone_id}"
+    evaluate_target_health = true
+  }
+}
