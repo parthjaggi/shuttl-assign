@@ -113,6 +113,9 @@ resource "aws_launch_template" "go_app" {
   lifecycle {
     create_before_destroy = true
   }
+  iam_instance_profile {
+    name = "${aws_iam_instance_profile.ec2_s3_access.name}"
+  }
 }
 
 resource "aws_elb" "go_app" {
@@ -143,10 +146,10 @@ resource "aws_elb" "go_app" {
 
   health_check {
     healthy_threshold   = 2
-    unhealthy_threshold = 10
+    unhealthy_threshold = 2
     timeout             = 3
     target              = "HTTP:3000/"
-    interval            = 300
+    interval            = 30
   }
 
   cross_zone_load_balancing   = true
@@ -181,7 +184,7 @@ resource "aws_autoscaling_group" "go_app" {
         version            = "$$Latest"
       }
       override {
-        instance_type = "t2.small"
+        instance_type = "t2.micro"
       }
       override {
         instance_type = "t2.nano"

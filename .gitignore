@@ -1,3 +1,2 @@
 credentials.tfvars
-scripts/.s3cfg
 packer/credentials.json

@@ -11,11 +11,6 @@
         "destination": "/home/ubuntu/go-logrotate"
       },
       {
-        "type": "file",
-        "source": "../scripts/.s3cfg",
-        "destination": "/home/ubuntu/.s3cfg"
-      },
-      {
         "type": "shell",
         "scripts": ["../scripts/install_software.sh"],
         "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",

@@ -1,5 +1,5 @@
 /home/ubuntu/http-echo-logs/*log {
-    su ubuntu ubuntu
+    su ubuntu
     daily
     rotate 10
     copytruncate
@@ -8,6 +8,6 @@
     missingok
     compress
     postrotate
-      /usr/local/bin/s3cmd sync /home/ubuntu/http-echo-logs/*.gz s3://my-shuttl-bucket/http-echo/
+      /home/ubuntu/.local/bin/aws s3 sync /home/ubuntu/http-echo-logs s3://my-shuttl-logs --exclude="*.log"
     endscript
 }
