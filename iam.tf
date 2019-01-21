@@ -1,6 +1,6 @@
 /*=== DATA ===*/
 
-data "aws_iam_policy_document" "instance-assume-role-policy" {
+data "aws_iam_policy_document" "ec2_instance" {
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
   }
 }
 
-data "aws_iam_policy_document" "example" {
+data "aws_iam_policy_document" "s3_access" {
   statement {
     actions   = ["s3:*"]
     resources = ["*"]
@@ -23,13 +23,13 @@ data "aws_iam_policy_document" "example" {
 
 resource "aws_iam_role" "ec2_s3_access" {
   name               = "ec2_s3_access"
-  assume_role_policy = "${data.aws_iam_policy_document.instance-assume-role-policy.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.ec2_instance.json}"
 }
 
 resource "aws_iam_policy" "s3_access" {
   name        = "s3_access"
   description = "S3 Access"
-  policy = "${data.aws_iam_policy_document.example.json}"
+  policy = "${data.aws_iam_policy_document.s3_access.json}"
 }
 
 resource "aws_iam_policy_attachment" "ec2_s3_access" {
