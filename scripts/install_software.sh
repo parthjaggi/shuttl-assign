@@ -2,7 +2,7 @@
 apt update
 
 # install pip
-apt install pip -y
+apt install python-pip -y
 
 # install golang
 curl -O https://storage.googleapis.com/golang/go1.11.2.linux-amd64.tar.gz

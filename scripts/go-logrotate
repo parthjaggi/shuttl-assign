@@ -1,5 +1,5 @@
 /home/ubuntu/http-echo-logs/*log {
-    su ubuntu
+    su ubuntu ubuntu
     daily
     rotate 10
     copytruncate
