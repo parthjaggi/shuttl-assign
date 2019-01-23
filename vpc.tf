@@ -130,18 +130,11 @@ resource "aws_elb" "go_app" {
     instance_protocol = "http"
   }
   # listener {
-  #   lb_port            = 80
-  #   lb_protocol        = "http"
-  #   instance_port      = 443
-  #   instance_protocol  = "https"
-  #   ssl_certificate_id = "${var.app["ssl_cert_arn"]}"
-  # }
-  # listener {
-  #   lb_port            = 443
-  #   lb_protocol        = "https"
-  #   instance_port      = 443
-  #   instance_protocol  = "https"
-  #   ssl_certificate_id = "${var.app["ssl_cert_arn"]}"
+  #   lb_port           = "443"
+  #   lb_protocol       = "https"
+  #   instance_port     = "3000"
+  #   instance_protocol = "http"
+  #   ssl_certificate_id = "${aws_acm_certificate.ssl_cert.arn}"
   # }
 
   health_check {
@@ -184,10 +177,10 @@ resource "aws_autoscaling_group" "go_app" {
         version            = "$$Latest"
       }
       override {
-        instance_type = "t2.micro"
+        instance_type = "t2.small"
       }
       override {
-        instance_type = "t2.nano"
+        instance_type = "t2.micro"
       }
     }
 
@@ -214,6 +207,15 @@ resource "aws_autoscaling_group" "go_app" {
   #   value               = "${data.aws_ami.go_app.id}"
   #   propagate_at_launch = true
   # }
+}
+
+resource "aws_acm_certificate" "ssl_cert" {
+  domain_name       = "terraform-test.${var.apex_domain}"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_zone" "my-zone" {

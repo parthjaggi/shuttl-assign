@@ -4,7 +4,7 @@ vpc = {
     subnet_size           = 4096
 }
 launch_config = {
-    instance_type         = "t2.micro"
+    instance_type         = "t2.medium"
     startup_file_path     = "./scripts/startup_app.sh"
 }
 autoscaling_config = {
@@ -13,5 +13,5 @@ autoscaling_config = {
     max_size                                 = 4
     on_demand_base_capacity                  = 1
     on_demand_percentage_above_base_capacity = 0
-    spot_instance_pools                      = 2
+    spot_instance_pools                      = 1
 }
